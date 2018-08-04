@@ -1,15 +1,50 @@
 import numpy as np
-import cv2
+import sys
+import cv2 as cv
 
-cap = cv2.VideoCapture("examples/video_1527101251.mp4")
-fgbg = cv2.createBackgroundSubtractorKNN()
+def main(argv):
+    cap = cv.VideoCapture("examples/video_1527101251.mp4")
+    while(True):
+        # Capture frame-by-frame
+        ret, frame = cap.read()
 
-while(1):
-    ret, frame = cap.read()
-    fgmask = fgbg.apply(frame)
-    cv2.imshow('frame',fgmask)
-    k = cv2.waitKey(30) & 0xff
-    if k == 27:
-        break
-cap.release()
-cv2.destroyAllWindows()
+        if frame is None:
+            print ('Error opening video:')
+            return -1
+
+        # Transform source image to gray if it is not already
+        if len(frame.shape) != 2:
+            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        else:
+            gray = frame
+        # Apply adaptiveThreshold at the bitwise_not of gray, notice the ~ symbol
+        gray = cv.bitwise_not(gray)
+        bw = cv.adaptiveThreshold(gray, 255, cv.ADAPTIVE_THRESH_MEAN_C, \
+                                    cv.THRESH_BINARY, 15, -2)
+
+        # Create the images that will use to extract the horizontal and vertical lines
+        horizontal = np.copy(bw)
+        vertical = np.copy(bw)
+            # Specify size on horizontal axis
+        cols = horizontal.shape[1]
+
+            # Specify size on vertical axis
+        rows = vertical.shape[0]
+        verticalsize = int(rows / 30)
+        # Create structure element for extracting vertical lines through morphology operations
+        verticalStructure = cv.getStructuringElement(cv.MORPH_RECT, (1, verticalsize))
+        # Apply morphology operations
+        vertical = cv.erode(vertical, verticalStructure)
+        vertical = cv.dilate(vertical, verticalStructure)
+        # Show extracted vertical lines
+        cv.imshow("vertical", vertical)
+        cv.imshow("frame", frame)
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # When everything done, release the capture
+    cap.release()
+    cv.destroyAllWindows()
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
