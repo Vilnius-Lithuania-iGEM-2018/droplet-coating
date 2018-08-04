@@ -1,19 +1,15 @@
-#!/usr/bin/env python3.7
-
+import numpy as np
 import cv2
-import sys
 
+cap = cv2.VideoCapture("examples/video_1527101251.mp4")
+fgbg = cv2.createBackgroundSubtractorKNN()
 
-def main():
-    video_file = cv2.VideoCapture(sys.argv[1])
-
-    while True:
-        ret, frame = video_file.read()
-        gray = cv2.cvtColor(frame, cv2.COLOR_BayerRG2GRAY)
-
-        cv2.imshow('Video Greyscale', gray)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    video_file.release()
-    cv2.destroyAllWindows()
+while(1):
+    ret, frame = cap.read()
+    fgmask = fgbg.apply(frame)
+    cv2.imshow('frame',fgmask)
+    k = cv2.waitKey(30) & 0xff
+    if k == 27:
+        break
+cap.release()
+cv2.destroyAllWindows()
