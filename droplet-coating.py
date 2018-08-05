@@ -24,11 +24,12 @@ def mouseCallback(event, x, y, flags, param):
 def main(argv):
     global regionSet, gX, gY
 
+    template = cv.imread("template-intersection.png",cv.IMREAD_REDUCED_COLOR_8)
     cap = cv.VideoCapture(argv[0])
     fgbg = cv.createBackgroundSubtractorKNN()
 
     cv.namedWindow("original")
-    cv.setMouseCallback("original", mouseCallback, param=None)
+    cv.setMouseCallback("original", mouseCallback)
 
     while(True):
         # Capture frame-by-frame
@@ -38,47 +39,26 @@ def main(argv):
             break
 
         if regionSet:
-            cv.rectangle(frame, (gX-50,gY-50), (gX+50,gY+50), cv.COLORMAP_PINK, 1,  4, 0)
+            cv.rectangle(frame, (gX-50,gY-50), (gX+50,gY+50), cv.COLORMAP_PINK, 2,  4, 0)
 
         cv.imshow("original", frame)
 
         while not regionSet:
-            cv.waitKey(20)
+            if cv.waitKey(20) & 0xFF == ord('m'):
+                height, width, channel = template.shape
+                print("Template h: %d, w: %d" %(height, width))
+                frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+                templ_gray = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
+                result = cv.matchTemplate(frame, template, cv.TM_CCOEFF)
+                #cv.normalize(result, result, 0, 1, cv.NORM_MINMAX, -1)
+                minVal, maxVal, minLoc, maxLoc = cv.minMaxLoc(result)
+                print("%s; %s - %s; %s" % ( minVal, maxVal, minLoc, maxLoc))
+                cv.rectangle(frame, maxLoc, (maxLoc[0]-width,maxLoc[1]-height), cv.COLORMAP_PINK, 2,  4, 0)
+                cv.imshow("original", frame)
 
-
-        # Transform source image to gray if it is not already
-        if len(frame.shape) != 2:
-            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        else:
-            gray = frame
-        # Apply adaptiveThreshold at the bitwise_not of gray, notice the ~ symbol
-        gray = cv.bitwise_not(gray)
-        bw = cv.adaptiveThreshold(gray, 255, cv.ADAPTIVE_THRESH_MEAN_C, \
-                                    cv.THRESH_BINARY, 15, -2)
-
-        # Create the images that will use to extract the horizontal and vertical lines
-        horizontal = np.copy(bw)
-        vertical = np.copy(bw)
-            # Specify size on horizontal axis
-        cols = horizontal.shape[1]
-
-            # Specify size on vertical axis
-        rows = vertical.shape[0]
-        verticalsize = int(rows / 30)
-        # Create structure element for extracting vertical lines through morphology operations
-        verticalStructure = cv.getStructuringElement(cv.MORPH_RECT, (1, verticalsize))
-        # Apply morphology operations
-        vertical = cv.erode(vertical, verticalStructure)
-        vertical = cv.dilate(vertical, verticalStructure)
-        rgb = cv.cvtColor(vertical, cv.COLOR_GRAY2BGR)
-
-        rgb[np.where((rgb==[255,255,255]).all(axis=2))] = [0,255,255]
         fgmask = fgbg.apply(frame)
-        cgmask = cv.cvtColor(fgmask, cv.COLOR_GRAY2BGR)
-        # Show extracted vertical line
-        comb = cgmask + rgb
-        cv.imshow("both", comb)
-        cv.imshow("cut both", comb[gY-50:gY+50, gX-50:gX+50])
+
+        cv.imshow("region sub", fgmask[gY-50:gY+50, gX-50:gX+50])
         if cv.waitKey(10) & 0xFF == ord('q'):
             break
 
