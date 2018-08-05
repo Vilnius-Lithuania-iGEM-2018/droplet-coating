@@ -60,7 +60,7 @@ def main(argv):
             sub_region = fgbg.apply(region)
             cv.imshow("bubble region", sub_region)
 
-        key = cv.waitKey(500)
+        key = cv.waitKey(250)
         if key & 0xFF == ord('q'):
             break
         if key & 0xFF == ord('r'):
