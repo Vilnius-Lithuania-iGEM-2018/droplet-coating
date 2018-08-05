@@ -26,12 +26,11 @@ def main(argv):
     global regionSet, gX, gY
 
     template = cv.imread("template-intersection.png",
-                         cv.IMREAD_ANYCOLOR)
+                         cv.IMWRITE_PNG_STRATEGY_FILTERED)
     cap = cv.VideoCapture(argv[0])
     fgbg = cv.createBackgroundSubtractorKNN()
 
     cv.namedWindow("original")
-    cv.setMouseCallback("original", mouseCallback)
 
     while(True):
         # Capture frame-by-frame
@@ -40,30 +39,23 @@ def main(argv):
         if frame is None:
             break
 
-        if regionSet:
-            cv.rectangle(frame, (gX-50, gY-50), (gX+50, gY+50),
-                         cv.COLORMAP_PINK, 2,  4, 0)
+        if not regionSet:
+            height, width, channel = template.shape
+            frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+            templ_gray = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
+            result = cv.matchTemplate(frame_gray, templ_gray, cv.TM_CCOEFF)
+            minVal, maxVal, minLoc, maxLoc = cv.minMaxLoc(result)
+            print("%s; %s - %s; %s" % (minVal, maxVal, minLoc, maxLoc))
 
         cv.imshow("original", frame)
+        cv.rectangle(
+            frame, maxLoc, (maxLoc[0]+width, maxLoc[1]+height), cv.COLORMAP_PINK, 2,  4, 0)
+        cv.circle(frame, maxLoc, 10, cv.COLORMAP_PINK, 1, 4, 0)
+        cv.imshow("original", frame)
 
-        while not regionSet:
-            if cv.waitKey(20) & 0xFF == ord('m'):
-                height, width, channel = template.shape
-                print("Template h: %d, w: %d" % (height, width))
-                frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-                templ_gray = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
-                result = cv.matchTemplate(frame, template, cv.TM_CCOEFF)
-                #cv.normalize(result, result, 0, 1, cv.NORM_MINMAX, -1)
-                minVal, maxVal, minLoc, maxLoc = cv.minMaxLoc(result)
-                print("%s; %s - %s; %s" % (minVal, maxVal, minLoc, maxLoc))
-                cv.rectangle(
-                    frame, maxLoc, (maxLoc[0]+width, maxLoc[1]+height), cv.COLORMAP_PINK, 2,  4, 0)
-                cv.imshow("original", frame)
-
-        fgmask = fgbg.apply(frame)
-
-        cv.imshow("region sub", fgmask[gY-50:gY+50, gX-50:gX+50])
-        if cv.waitKey(10) & 0xFF == ord('q'):
+        #fgmask = fgbg.apply(frame)
+        #cv.imshow("region sub", fgmask[gY-50:gY+50, gX-50:gX+50])
+        if cv.waitKey(250) & 0xFF == ord('q'):
             break
 
     # When everything done, release the capture
