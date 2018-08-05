@@ -11,6 +11,10 @@ import cv2
 gX = 0
 gY = 0
 regionSet = False
+rect_color = (0, 0, 0)
+templ_height = 0
+templ_width = 0
+
 
 def mouseCallback(event, x, y, flags, param):
     global regionSet, gX, gY
@@ -22,7 +26,7 @@ def mouseCallback(event, x, y, flags, param):
 
 
 def main(argv):
-    global regionSet, gX, gY
+    global regionSet, gX, gY, rect_color, templ_height, templ_width
 
     template = cv.imread("template-intersection.png",cv.IMWRITE_PNG_STRATEGY_FILTERED)
     cap = cv.VideoCapture(argv[0])
@@ -38,22 +42,30 @@ def main(argv):
             break
 
         if not regionSet:
-            height, width, channel = template.shape
+            templ_height, templ_width, channel = template.shape
+            print("template h: %d, w: %d" % (templ_height, templ_width))
             frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
             templ_gray = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
             result = cv.matchTemplate(frame_gray, templ_gray, cv.TM_CCOEFF)
             minVal, maxVal, minLoc, maxLoc = cv.minMaxLoc(result)
-            print("%s; %s - %s; %s" % ( minVal, maxVal, minLoc, maxLoc))
+            print("Region found: [%s, %s]" % (minLoc, maxLoc))
 
-        cv.imshow("original", frame)
-        cv.rectangle(frame, maxLoc, (maxLoc[0]+width,maxLoc[1]+height), cv.COLORMAP_PINK, 2,  4, 0)
         cv.circle(frame, maxLoc, 10, cv.COLORMAP_PINK, 1, 4, 0)
+        cv.rectangle(frame, maxLoc, (maxLoc[0]+templ_width,maxLoc[1]+templ_height), rect_color, 2,  4, 0)
         cv.imshow("original", frame)
 
-        #fgmask = fgbg.apply(frame)
-        #cv.imshow("region sub", fgmask[gY-50:gY+50, gX-50:gX+50])
-        if cv.waitKey(250) & 0xFF == ord('q'):
+        if regionSet:
+            region = frame[maxLoc[1]:maxLoc[1]+templ_height, maxLoc[0]:maxLoc[0]+templ_width]
+            sub_region = fgbg.apply(region)
+            cv.imshow("bubble region", sub_region)
+
+        key = cv.waitKey(500)
+        if key & 0xFF == ord('q'):
             break
+        if key & 0xFF == ord('r'):
+            regionSet = True
+            rect_color = (255, 0, 0)
+
 
     # When everything done, release the capture
     cap.release()
