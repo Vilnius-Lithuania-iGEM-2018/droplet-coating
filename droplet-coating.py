@@ -29,7 +29,6 @@ def main(argv):
     fgbg = cv.createBackgroundSubtractorKNN()
 
     cv.namedWindow("original")
-    cv.setMouseCallback("original", mouseCallback)
 
     while(True):
         # Capture frame-by-frame
@@ -38,23 +37,20 @@ def main(argv):
         if frame is None:
             break
 
-        if regionSet:
-            cv.rectangle(frame, (gX-50,gY-50), (gX+50,gY+50), cv.COLORMAP_PINK, 2,  4, 0)
-
         cv.imshow("original", frame)
         height, width, channel = template.shape
         frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         templ_gray = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
-        result = cv.matchTemplate(frame_gray, templ_gray, cv.TM_CCOEFF_NORMED)
+        result = cv.matchTemplate(frame_gray, templ_gray, cv.TM_CCOEFF)
         minVal, maxVal, minLoc, maxLoc = cv.minMaxLoc(result)
         print("%s; %s - %s; %s" % ( minVal, maxVal, minLoc, maxLoc))
-        cv.rectangle(frame, minLoc, (minLoc[0]+width,minLoc[1]+height), cv.COLORMAP_PINK, 2,  4, 0)
+        cv.rectangle(frame, minLoc, (maxLoc[0]+width,maxLoc[1]+height), cv.COLORMAP_PINK, 2,  4, 0)
         cv.circle(frame, minLoc, 10, cv.COLORMAP_PINK, 1, 4, 0)
         cv.imshow("original", frame)
 
         #fgmask = fgbg.apply(frame)
         #cv.imshow("region sub", fgmask[gY-50:gY+50, gX-50:gX+50])
-        if cv.waitKey(10) & 0xFF == ord('q'):
+        if cv.waitKey(250) & 0xFF == ord('q'):
             break
 
     # When everything done, release the capture
