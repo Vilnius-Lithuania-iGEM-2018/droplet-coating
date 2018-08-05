@@ -2,12 +2,23 @@ import numpy as np
 import sys
 import cv2 as cv
 
+frameCount = 0
+
+import cv2
+ 
+# initialize the list of reference points and boolean indicating
+# whether cropping is being performed or not
+
+        
 def main(argv):
+    
     cap = cv.VideoCapture("examples/video_1527101251.mp4")
+    fgbg = cv.createBackgroundSubtractorKNN()
+       
     while(True):
         # Capture frame-by-frame
         ret, frame = cap.read()
-
+        # Check if frame is opened
         if frame is None:
             print ('Error opening video:')
             return -1
@@ -36,9 +47,14 @@ def main(argv):
         # Apply morphology operations
         vertical = cv.erode(vertical, verticalStructure)
         vertical = cv.dilate(vertical, verticalStructure)
-        # Show extracted vertical lines
-        cv.imshow("vertical", vertical)
-        cv.imshow("frame", frame)
+        rgb = cv.cvtColor(vertical, cv.COLOR_GRAY2BGR)
+
+        rgb[np.where((rgb==[255,255,255]).all(axis=2))] = [0,255,255]
+        fgmask = fgbg.apply(frame)
+        cgmask = cv.cvtColor(fgmask, cv.COLOR_GRAY2BGR)
+        # Show extracted vertical line
+        comb = cgmask + rgb
+        cv.imshow("both", comb)
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
