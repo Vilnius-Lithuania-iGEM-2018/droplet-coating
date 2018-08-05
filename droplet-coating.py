@@ -34,6 +34,7 @@ def main(argv):
     fgbg = cv.createBackgroundSubtractorKNN()
 
     cv.namedWindow("original")
+    cv2.namedWindow("bubble region", cv2.WINDOW_NORMAL)
 
     while(True):
         # Capture frame-by-frame
@@ -44,7 +45,6 @@ def main(argv):
 
         if not regionSet:
             templ_height, templ_width, channel = template.shape
-            print("template h: %d, w: %d" % (templ_height, templ_width))
             frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
             templ_gray = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
             result = cv.matchTemplate(frame_gray, templ_gray, cv.TM_CCOEFF)
@@ -60,7 +60,7 @@ def main(argv):
             sub_region = fgbg.apply(region)
             cv.imshow("bubble region", sub_region)
 
-        key = cv.waitKey(250)
+        key = cv.waitKey(100)
         if key & 0xFF == ord('q'):
             break
         if key & 0xFF == ord('r'):
