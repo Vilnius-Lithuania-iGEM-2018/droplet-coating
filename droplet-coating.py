@@ -28,7 +28,8 @@ def mouseCallback(event, x, y, flags, param):
 def main(argv):
     global regionSet, gX, gY, rect_color, templ_height, templ_width
 
-    template = cv.imread("template-intersection.png",cv.IMWRITE_PNG_STRATEGY_FILTERED)
+    template = cv.imread("template-intersection.png",
+                         cv.IMWRITE_PNG_STRATEGY_FILTERED)
     cap = cv.VideoCapture(argv[0])
     fgbg = cv.createBackgroundSubtractorKNN()
 
@@ -70,6 +71,7 @@ def main(argv):
     # When everything done, release the capture
     cap.release()
     cv.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
