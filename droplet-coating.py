@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.7
+
 import numpy as np
 import sys
 import cv2 as cv
@@ -5,23 +7,48 @@ import cv2 as cv
 frameCount = 0
 
 import cv2
- 
-# initialize the list of reference points and boolean indicating
-# whether cropping is being performed or not
 
-        
+gX = 0
+gY = 0
+regionSet = False
+
+def mouseCallback(event, x, y, flags, param):
+    global regionSet, gX, gY
+    if event == cv.EVENT_LBUTTONDBLCLK:
+        gX = x
+        gY = y
+        regionSet = True
+        print("Mouse event %d: %d,%d" % (event, gX, gY))
+        print("Point 1 would be: %d,%d" % (gX, gX + 20))
+        print("Point 2 would be: %d,%d" % (gY, gY + 20))
+
+
 def main(argv):
-    
-    cap = cv.VideoCapture("examples/video_1527101251.mp4")
+    global regionSet, gX, gY
+
+    print("Catching events: %d" % cv.EVENT_LBUTTONUP)
+
+    cap = cv.VideoCapture(argv[0])
     fgbg = cv.createBackgroundSubtractorKNN()
-       
+
+    cv.namedWindow("original")
+    cv.setMouseCallback("original", mouseCallback, param=None)
+
     while(True):
         # Capture frame-by-frame
         ret, frame = cap.read()
         # Check if frame is opened
         if frame is None:
-            print ('Error opening video:')
-            return -1
+            break
+
+        if regionSet:
+            cv.rectangle(frame, (gX-50,gY-50), (gX+50,gY+50), cv.COLORMAP_PINK, 1,  4, 0)
+
+        cv.imshow("original", frame)
+
+        while not regionSet:
+            cv.waitKey(20)
+
 
         # Transform source image to gray if it is not already
         if len(frame.shape) != 2:
@@ -55,7 +82,8 @@ def main(argv):
         # Show extracted vertical line
         comb = cgmask + rgb
         cv.imshow("both", comb)
-        if cv.waitKey(1) & 0xFF == ord('q'):
+        cv.imshow("cut both", comb[gY-50:gY+50, gX-50:gX+50])
+        if cv.waitKey(10) & 0xFF == ord('q'):
             break
 
     # When everything done, release the capture
