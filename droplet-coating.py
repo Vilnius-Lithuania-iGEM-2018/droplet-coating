@@ -18,15 +18,11 @@ def mouseCallback(event, x, y, flags, param):
         gX = x
         gY = y
         regionSet = True
-        print("Mouse event %d: %d,%d" % (event, gX, gY))
-        print("Point 1 would be: %d,%d" % (gX, gX + 20))
-        print("Point 2 would be: %d,%d" % (gY, gY + 20))
+        print("Mouse event %d: %d,%d" % (event, x, y))
 
 
 def main(argv):
     global regionSet, gX, gY
-
-    print("Catching events: %d" % cv.EVENT_LBUTTONUP)
 
     cap = cv.VideoCapture(argv[0])
     fgbg = cv.createBackgroundSubtractorKNN()
