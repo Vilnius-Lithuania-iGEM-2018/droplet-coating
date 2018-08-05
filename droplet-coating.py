@@ -12,6 +12,7 @@ gX = 0
 gY = 0
 regionSet = False
 
+
 def mouseCallback(event, x, y, flags, param):
     global regionSet, gX, gY
     if event == cv.EVENT_LBUTTONDBLCLK:
@@ -24,7 +25,8 @@ def mouseCallback(event, x, y, flags, param):
 def main(argv):
     global regionSet, gX, gY
 
-    template = cv.imread("template-intersection.png",cv.IMREAD_REDUCED_COLOR_8)
+    template = cv.imread("template-intersection.png",
+                         cv.IMREAD_ANYCOLOR)
     cap = cv.VideoCapture(argv[0])
     fgbg = cv.createBackgroundSubtractorKNN()
 
@@ -39,21 +41,23 @@ def main(argv):
             break
 
         if regionSet:
-            cv.rectangle(frame, (gX-50,gY-50), (gX+50,gY+50), cv.COLORMAP_PINK, 2,  4, 0)
+            cv.rectangle(frame, (gX-50, gY-50), (gX+50, gY+50),
+                         cv.COLORMAP_PINK, 2,  4, 0)
 
         cv.imshow("original", frame)
 
         while not regionSet:
             if cv.waitKey(20) & 0xFF == ord('m'):
                 height, width, channel = template.shape
-                print("Template h: %d, w: %d" %(height, width))
+                print("Template h: %d, w: %d" % (height, width))
                 frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
                 templ_gray = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
                 result = cv.matchTemplate(frame, template, cv.TM_CCOEFF)
                 #cv.normalize(result, result, 0, 1, cv.NORM_MINMAX, -1)
                 minVal, maxVal, minLoc, maxLoc = cv.minMaxLoc(result)
-                print("%s; %s - %s; %s" % ( minVal, maxVal, minLoc, maxLoc))
-                cv.rectangle(frame, maxLoc, (maxLoc[0]-width,maxLoc[1]-height), cv.COLORMAP_PINK, 2,  4, 0)
+                print("%s; %s - %s; %s" % (minVal, maxVal, minLoc, maxLoc))
+                cv.rectangle(
+                    frame, maxLoc, (maxLoc[0]+width, maxLoc[1]+height), cv.COLORMAP_PINK, 2,  4, 0)
                 cv.imshow("original", frame)
 
         fgmask = fgbg.apply(frame)
@@ -65,6 +69,7 @@ def main(argv):
     # When everything done, release the capture
     cap.release()
     cv.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
