@@ -37,15 +37,17 @@ def main(argv):
         if frame is None:
             break
 
+        if not regionSet:
+            height, width, channel = template.shape
+            frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+            templ_gray = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
+            result = cv.matchTemplate(frame_gray, templ_gray, cv.TM_CCOEFF)
+            minVal, maxVal, minLoc, maxLoc = cv.minMaxLoc(result)
+            print("%s; %s - %s; %s" % ( minVal, maxVal, minLoc, maxLoc))
+
         cv.imshow("original", frame)
-        height, width, channel = template.shape
-        frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        templ_gray = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
-        result = cv.matchTemplate(frame_gray, templ_gray, cv.TM_CCOEFF)
-        minVal, maxVal, minLoc, maxLoc = cv.minMaxLoc(result)
-        print("%s; %s - %s; %s" % ( minVal, maxVal, minLoc, maxLoc))
-        cv.rectangle(frame, minLoc, (maxLoc[0]+width,maxLoc[1]+height), cv.COLORMAP_PINK, 2,  4, 0)
-        cv.circle(frame, minLoc, 10, cv.COLORMAP_PINK, 1, 4, 0)
+        cv.rectangle(frame, maxLoc, (maxLoc[0]+width,maxLoc[1]+height), cv.COLORMAP_PINK, 2,  4, 0)
+        cv.circle(frame, maxLoc, 10, cv.COLORMAP_PINK, 1, 4, 0)
         cv.imshow("original", frame)
 
         #fgmask = fgbg.apply(frame)
