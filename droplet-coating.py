@@ -30,6 +30,8 @@ def main(argv):
 
     template = cv.imread("template-intersection.png",
                          cv.IMWRITE_PNG_STRATEGY_FILTERED)
+    red_lines = cv.imread("template-intersection-line.png",
+                         cv.IMWRITE_PNG_STRATEGY_FILTERED)
     cap = cv.VideoCapture(argv[0])
     fgbg = cv.createBackgroundSubtractorKNN()
 
@@ -58,7 +60,7 @@ def main(argv):
         if regionSet:
             region = frame[maxLoc[1]:maxLoc[1]+templ_height, maxLoc[0]:maxLoc[0]+templ_width]
             sub_region = fgbg.apply(region)
-            cv.imshow("bubble region", sub_region)
+            cv.imshow("bubble region", red_lines + cv.cvtColor(sub_region, cv.COLOR_GRAY2BGR))
 
         key = cv.waitKey(100)
         if key & 0xFF == ord('q'):
